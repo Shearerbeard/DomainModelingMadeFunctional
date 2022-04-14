@@ -13,8 +13,14 @@ module Reko =
     type RingId = RingId of ID<UserId>
     type PostId = PostId of ID<UserId>
     type CustomerId = CustomerId of ID<UserId>
+    type AdminId = AdminId of ID<AdminId>
     type VendorId = VendorId of string
     type Password = private Password of string
+
+    type ActorId =
+        | Admin of AdminId
+        | Customer of CustomerId
+        | Vendor of VendorId
 
     (*
         Constrained Simple Types
@@ -94,12 +100,32 @@ module Reko =
         Ring Types
     *)
     type RingName = RingName of string
+    type RingSchedule = Undefined
 
-    type Ring = {
+    type UnvalidatedRing = {
+        Name : RingName
+        Address : Address
+        Schedule : RingSchedule
+    }
+
+    type ValidatedRing = {
         Id : RingId
         Name : RingName
         Address : Address
+        Schedule : RingSchedule
     }
+
+    type ArchivedRing = {
+        Id : RingId
+        Name : RingName
+        Address : Address
+        Schedule : RingSchedule
+    }
+
+    type Ring =
+        | Unvalidated of UnvalidatedRing
+        | Valid of ValidatedRing
+        | Archived of ArchivedRing
 
     (*
         Vendor Types
@@ -143,7 +169,6 @@ module Reko =
     (*
         Admin Types
     *)
-    type AdminId = AdminId of string
     type AdminName = AdminName of string
 
     type Admin = {
@@ -197,3 +222,128 @@ module Reko =
             | InvalidEmail
 
     type VerifyEmail = UnverifiedEmail -> VerifiedEmail
+
+    (*
+        Workflow Components
+    *)
+
+    // ValidateRing
+    type RingExists = Undefined
+    type RingNameTaken = Undefined
+    type HasRingAdmin = Undefined
+    type HasValidRingSchedule = Undefined
+
+    type RingCreate = UnvalidatedRing
+
+    type ValidateRingCreate =
+        RingExists // dependency
+            -> HasRingAdmin // dependency
+            -> RingNameTaken // dependency
+            -> HasValidRingSchedule // dependency
+            -> RingCreate // input
+            -> Result<ValidatedRing, ValidateRingError>
+    and
+        ValidateRingError =
+            | AlreadyExists
+            | UserNotAdmin
+            | NameTaken
+            | InvalidSchedule
+
+    type RingUpdate = {
+        Ring : ValidatedRing
+        Name : RingName option
+        Address : Address option
+        Schedule : RingSchedule
+    }
+    
+
+    type ValidateRingUpdate =
+        RingExists // dependency 
+            -> HasRingAdmin // dependency 
+            -> RingNameTaken // dependency 
+            -> HasValidRingSchedule // dependency 
+            -> RingUpdate // input
+            -> Result<ValidatedRing, ValidateRingUpdateError> 
+    and
+        ValidateRingUpdateError =
+            | DoesNotExist
+            | UserNotAdmin
+            | NameTaken
+            | InvalidSchedule
+
+    type RingRemove = {
+        RingId : RingId
+        ActorId : ActorId
+    }
+
+    type RingIsRemoved = Undefined
+
+    type ValidateRingRemove =
+        RingExists // dependency 
+            -> RingIsRemoved
+            -> HasRingAdmin // dependency 
+            -> RingNameTaken // dependency 
+            -> HasValidRingSchedule // dependency 
+            -> RingRemove // input
+            -> Result<ValidatedRing, ValidateRingUpdateError> 
+    and
+        ValidateRingRemoveError =
+            | DoesNotExist
+            | AlreadyRemoved
+            | UserNotAdmin
+            | NameTaken
+            | InvalidSchedule
+
+    // CreateRingId
+    type CreateRingId = unit -> ID<RingId>
+
+    (*
+        Events
+    *)
+    type RingAddedEvent = {
+        AdminId : AdminId
+        Ring : ValidatedRing
+    }
+
+    type RingUpdatedEvent = {
+        AdminId : AdminId
+        Ring : RingUpdate
+    }
+
+    type RingRemovedEvent = {
+        AdminId : AdminId
+        RingId : RingId
+    }
+
+    (*
+        Command
+    *)
+    type Command<'data> = {
+        Data : 'data
+        TimeStamp : DateTime
+        UserId : UserId
+        ActorId : ActorId
+    }
+
+    type AddRingCommand = Command<RingCreate>
+    type UpdateRingCommand = Command<RingUpdate>
+    type RemoveRingCommand = Command<RingRemove>
+
+    (*
+        Workflow Impl
+    *)
+    type AddRingWorkflow = AddRingCommand -> Result<RingAddedEvent, AddRingWorkflowError>
+    and
+        AddRingWorkflowError =
+            | Validation of ValidateRingError
+
+    type UpdateRingWorkflow = UpdateRingCommand -> Result<RingUpdatedEvent, UpdateRingWorkflowError>
+    and
+        UpdateRingWorkflowError =
+            | Validation of ValidateRingUpdateError
+
+    type RemoveRingWorkflow = RemoveRingCommand -> Result<RingRemovedEvent, RemoveRingWorkflowError>
+    and
+        RemoveRingWorkflowError =
+            | Validation of ValidateRingRemoveError 
+
