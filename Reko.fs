@@ -1,4 +1,4 @@
-module Reko
+module Reko =
     open System
     (*
        Simple Types
@@ -14,14 +14,13 @@ module Reko
     type PostId = PostId of ID<UserId>
     type CustomerId = CustomerId of ID<UserId>
     type VendorId = VendorId of string
-    type Password = Password of string
+    type Password = private Password of string
 
     (*
         Constrained Simple Types
     *)
     module ConstrainedType =
         let newId<'T> (): ID<'T> = ID(System.Guid.NewGuid())
-
 
 
     module UnverifiedEmail =
@@ -49,6 +48,15 @@ module Reko
             else
                 Error "Invalid Zip Code"
 
+    module Password =
+        let value (Password str) = str
+
+        let create str = 
+            if String.IsNullOrEmpty(str) then
+                Error "Email: Must not be null or empty"
+            else
+                Ok (Password str)
+
     (*
         Compound Types
     *)
@@ -70,7 +78,6 @@ module Reko
         FirstName : string
         LastName : string
     }
-
     
 
     (*
