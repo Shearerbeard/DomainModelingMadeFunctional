@@ -1,7 +1,7 @@
 module Reko =
     open System
     (*
-        TODO: 
+        TODO:
             Email + Text notification preference
             Notifcations + through web
 
@@ -34,17 +34,17 @@ module Reko =
         Constrained Simple Types
     *)
     module ConstrainedType =
-        let newId<'T> (): ID<'T> = ID(System.Guid.NewGuid())
+        let newId<'T> () : ID<'T> = ID(System.Guid.NewGuid())
 
 
     module UnverifiedEmail =
-        let value (UnverifiedEmail str) = str 
+        let value (UnverifiedEmail str) = str
 
         let create str =
             if String.IsNullOrEmpty(str) then
                 Error "Email: Must not be null or empty"
             elif System.Text.RegularExpressions.Regex.IsMatch(str, ".+@.+") then
-                Ok (UnverifiedEmail str)
+                Ok(UnverifiedEmail str)
             else
                 Error "Invalid Email Address"
 
@@ -58,29 +58,28 @@ module Reko =
             if String.IsNullOrEmpty(str) then
                 Error "Zip Code Must Not Be Empty"
             elif System.Text.RegularExpressions.Regex.IsMatch(str, "\d{5}") then
-                Ok (ZipCode str)
+                Ok(ZipCode str)
             else
                 Error "Invalid Zip Code"
 
     module Password =
         let value (Password str) = str
 
-        let create str = 
+        let create str =
             if String.IsNullOrEmpty(str) then
                 Error "Email: Must not be null or empty"
             else
-                Ok (Password str)
+                Ok(Password str)
 
     (*
         Compound Types
     *)
-    type AddressUSA = {
-        AddressLine1 : string
-        AddressLine2 : string
-        City : string
-        State : string
-        ZipCode : ZipCode
-    }
+    type AddressUSA =
+        { AddressLine1: string
+          AddressLine2: string
+          City: string
+          State: string
+          ZipCode: ZipCode }
 
     type Address = AddressUSA
 
@@ -88,21 +87,17 @@ module Reko =
         | VerifiedEmail
         | UnverifiedEmail
 
-    type PersonalName = {
-        FirstName : string
-        LastName : string
-    }
-    
+    type PersonalName = { FirstName: string; LastName: string }
+
 
     (*
         User Types
     *)
-    type User = {
-        Id : UserId
-        Name : PersonalName
-        Email : Email
-        Password : Password
-    }
+    type User =
+        { Id: UserId
+          Name: PersonalName
+          Email: Email
+          Password: Password }
 
     (*
         Ring Types
@@ -110,25 +105,22 @@ module Reko =
     type RingName = RingName of string
     type RingSchedule = Undefined
 
-    type UnvalidatedRing = {
-        Name : RingName
-        Address : Address
-        Schedule : RingSchedule
-    }
+    type UnvalidatedRing =
+        { Name: RingName
+          Address: Address
+          Schedule: RingSchedule }
 
-    type ValidatedRing = {
-        Id : RingId
-        Name : RingName
-        Address : Address
-        Schedule : RingSchedule
-    }
+    type ValidatedRing =
+        { Id: RingId
+          Name: RingName
+          Address: Address
+          Schedule: RingSchedule }
 
-    type ArchivedRing = {
-        Id : RingId
-        Name : RingName
-        Address : Address
-        Schedule : RingSchedule
-    }
+    type ArchivedRing =
+        { Id: RingId
+          Name: RingName
+          Address: Address
+          Schedule: RingSchedule }
 
     type Ring =
         | Unvalidated of UnvalidatedRing
@@ -139,14 +131,13 @@ module Reko =
     type VendorLogo = Undefined
     type VendorRing = VendorRing of RingId
 
-    type Vendor = {
-        Id: VendorId
-        Name : VendorName
-        Email : Email
-        Logo : VendorLogo
-        User : UserId
-        VendorRings : VendorRing list
-    }
+    type Vendor =
+        { Id: VendorId
+          Name: VendorName
+          Email: Email
+          Logo: VendorLogo
+          User: UserId
+          VendorRings: VendorRing list }
 
     (*
         Customer Types
@@ -155,22 +146,18 @@ module Reko =
     type CustomerRing = CustomerRing of RingId
 
 
-    type Customer = {
-        Id :  CustomerId
-        user: UserId
-        Name : CustomerName
-        Rings : RingId list
-    }
+    type Customer =
+        { Id: CustomerId
+          user: UserId
+          Name: CustomerName
+          Rings: RingId list }
 
     (*
         Admin Types
     *)
     type AdminName = AdminName of string
 
-    type Admin = {
-        Id : AdminId
-        UserId : UserId
-    }
+    type Admin = { Id: AdminId; UserId: UserId }
 
     (*
         Post Types
@@ -179,28 +166,27 @@ module Reko =
         | Vendor of VendorId
         | Admin of AdminId
         | Customer of CustomerId
+
     type PostText = PostText of string
     type PostParent = PostParent of PostId option
-    type RootPost = {
-        Id : PostId
-        Author : PostAuthor
-        Text : PostText
-    }
 
-    type ReplyPost = {
-        Id : PostId
-        Author : PostAuthor
-        Text : PostText
-        Parent : PostParent
-    }
+    type RootPost =
+        { Id: PostId
+          Author: PostAuthor
+          Text: PostText }
 
-    type ReplyPostWithMention = {
-        Id : PostId
-        Author : PostAuthor
-        Text : PostText
-        Parent : PostParent
-        Mention : PostAuthor
-    }
+    type ReplyPost =
+        { Id: PostId
+          Author: PostAuthor
+          Text: PostText
+          Parent: PostParent }
+
+    type ReplyPostWithMention =
+        { Id: PostId
+          Author: PostAuthor
+          Text: PostText
+          Parent: PostParent
+          Mention: PostAuthor }
 
     type Post =
         | Root of RootPost
@@ -212,10 +198,10 @@ module Reko =
     *)
 
     type ValidateEmail = UnvalidatedEmail -> Result<UnverifiedEmail, EmailValidationError>
-    and
-        EmailValidationError =
-            | EmptyEmail
-            | InvalidEmail
+
+    and EmailValidationError =
+        | EmptyEmail
+        | InvalidEmail
 
     type VerifyEmail = UnverifiedEmail -> VerifiedEmail
 
@@ -223,23 +209,20 @@ module Reko =
         Command
     *)
     type CreateRing = UnvalidatedRing
-    type UpdateRing = {
-        Ring : ValidatedRing
-        Name : RingName option
-        Address : Address option
-        Schedule : RingSchedule
-    }
-    type RemoveRing = {
-        RingId : RingId
-        ActorId : ActorId
-    }
 
-    type Command<'data> = {
-        Data : 'data
-        TimeStamp : DateTime
-        UserId : UserId
-        ActorId : ActorId
-    }
+    type UpdateRing =
+        { Ring: ValidatedRing
+          Name: RingName option
+          Address: Address option
+          Schedule: RingSchedule }
+
+    type RemoveRing = { RingId: RingId; ActorId: ActorId }
+
+    type Command<'data> =
+        { Data: 'data
+          TimeStamp: DateTime
+          UserId: UserId
+          ActorId: ActorId }
 
     type CreateRingCommand = Command<CreateRing>
     type UpdateRingCommand = Command<UpdateRing>
@@ -248,20 +231,13 @@ module Reko =
     (*
         Events
     *)
-    type RingCreatedEvent = {
-        AdminId : AdminId
-        Ring : ValidatedRing
-    }
+    type RingCreatedEvent =
+        { AdminId: AdminId
+          Ring: ValidatedRing }
 
-    type RingUpdatedEvent = {
-        AdminId : AdminId
-        Ring : UpdateRing
-    }
+    type RingUpdatedEvent = { AdminId: AdminId; Ring: UpdateRing }
 
-    type RingRemovedEvent = {
-        AdminId : AdminId
-        RingId : RingId
-    }
+    type RingRemovedEvent = { AdminId: AdminId; RingId: RingId }
 
     (*
         Workflow Steps
@@ -280,49 +256,49 @@ module Reko =
             -> Ring
             -> CreateRing // input
             -> Result<ValidatedRing, ValidateRingError>
-    and
-        ValidateRingError =
-            | AlreadyExists
-            | UserNotAdmin
-            | NameTaken
-            | InvalidSchedule
 
-    
-    
+    and ValidateRingError =
+        | AlreadyExists
+        | UserNotAdmin
+        | NameTaken
+        | InvalidSchedule
+
+
+
 
     type ValidateRingUpdate =
-        RingExists // dependency 
-            -> HasRingAdmin // dependency 
-            -> RingNameTaken // dependency 
-            -> HasValidRingSchedule // dependency 
+        RingExists // dependency
+            -> HasRingAdmin // dependency
+            -> RingNameTaken // dependency
+            -> HasValidRingSchedule // dependency
             -> UpdateRing // input
-            -> Result<ValidatedRing, ValidateRingUpdateError> 
-    and
-        ValidateRingUpdateError =
-            | DoesNotExist
-            | UserNotAdmin
-            | NameTaken
-            | InvalidSchedule
+            -> Result<ValidatedRing, ValidateRingUpdateError>
 
-    
+    and ValidateRingUpdateError =
+        | DoesNotExist
+        | UserNotAdmin
+        | NameTaken
+        | InvalidSchedule
+
+
 
     type RingIsRemoved = Undefined
 
     type ValidateRingRemove =
-        RingExists // dependency 
+        RingExists // dependency
             -> RingIsRemoved
-            -> HasRingAdmin // dependency 
-            -> RingNameTaken // dependency 
-            -> HasValidRingSchedule // dependency 
+            -> HasRingAdmin // dependency
+            -> RingNameTaken // dependency
+            -> HasValidRingSchedule // dependency
             -> RemoveRing // input
-            -> Result<ValidatedRing, ValidateRingUpdateError> 
-    and
-        ValidateRingRemoveError =
-            | DoesNotExist
-            | AlreadyRemoved
-            | UserNotAdmin
-            | NameTaken
-            | InvalidSchedule
+            -> Result<ValidatedRing, ValidateRingUpdateError>
+
+    and ValidateRingRemoveError =
+        | DoesNotExist
+        | AlreadyRemoved
+        | UserNotAdmin
+        | NameTaken
+        | InvalidSchedule
 
     // CreateRingId
     type CreateRingId = unit -> ID<RingId>
@@ -331,17 +307,10 @@ module Reko =
         Workflow Impl
     *)
     type AddRingWorkflow = CreateRingCommand -> Result<RingCreatedEvent, AddRingWorkflowError>
-    and
-        AddRingWorkflowError =
-            | Validation of ValidateRingError
+    and AddRingWorkflowError = Validation of ValidateRingError
 
     type UpdateRingWorkflow = UpdateRingCommand -> Result<RingUpdatedEvent, UpdateRingWorkflowError>
-    and
-        UpdateRingWorkflowError =
-            | Validation of ValidateRingUpdateError
+    and UpdateRingWorkflowError = Validation of ValidateRingUpdateError
 
     type RemoveRingWorkflow = RemoveRingCommand -> Result<RingRemovedEvent, RemoveRingWorkflowError>
-    and
-        RemoveRingWorkflowError =
-            | Validation of ValidateRingRemoveError 
-
+    and RemoveRingWorkflowError = Validation of ValidateRingRemoveError
