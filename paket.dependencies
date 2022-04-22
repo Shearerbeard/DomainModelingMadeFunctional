@@ -1,0 +1,7 @@
+source https://api.nuget.org/v3/index.json
+
+nuget FsToolkit
+nuget FsToolkit.ErrorHandling
+
+framework: net6.0
+storage: none

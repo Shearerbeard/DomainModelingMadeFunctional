@@ -1,6 +1,11 @@
-module Reko =
-    open System
-    (*
+module Reko
+
+open System
+open FsToolkit.ErrorHandling
+
+// open FsToolkit.ErrorHandling
+
+(*
         TODO:
             Email + Text notification preference
             Notifcations + through web
@@ -8,309 +13,360 @@ module Reko =
         TODO:
             Class Signup Module
     *)
-    (*
+(*
        Simple Types
     *)
-    type Undefined = exn
-    type ID<'T> = ID of System.Guid
-    type UnvalidatedEmail = UnvalidatedEmail of string
-    type UnverifiedEmail = private UnverifiedEmail of string
-    type VerifiedEmail = private VerifiedEmail of string
-    type ZipCode = private ZipCode of string
-    type UserId = UserId of ID<UserId>
-    type RingId = RingId of ID<UserId>
-    type PostId = PostId of ID<UserId>
-    type CustomerId = CustomerId of ID<UserId>
-    type AdminId = AdminId of ID<AdminId>
-    type VendorId = VendorId of string
-    type Password = private Password of string
+type Undefined = exn
+type ID<'T> = ID of System.Guid
+type UnvalidatedEmail = UnvalidatedEmail of string
+type UnverifiedEmail = private UnverifiedEmail of string
+type VerifiedEmail = private VerifiedEmail of string
+type ZipCode = private ZipCode of string
+type UserId = UserId of ID<UserId>
+type RingId = RingId of ID<RingId>
+type PostId = PostId of ID<PostId>
+type CustomerId = CustomerId of ID<UserId>
+type AdminId = AdminId of ID<AdminId>
+type VendorId = VendorId of string
+type Password = private Password of string
 
-    type ActorId =
-        | Admin of AdminId
-        | Customer of CustomerId
-        | Vendor of VendorId
+type ActorId =
+    | Admin of AdminId
+    | Customer of CustomerId
+    | Vendor of VendorId
 
-    (*
+(*
         Constrained Simple Types
     *)
-    module ConstrainedType =
-        let newId<'T> () : ID<'T> = ID(System.Guid.NewGuid())
+module ConstrainedType =
+    let newId<'T> () : ID<'T> = ID(System.Guid.NewGuid())
 
 
-    module UnverifiedEmail =
-        let value (UnverifiedEmail str) = str
+module UnverifiedEmail =
+    let value (UnverifiedEmail str) = str
 
-        let create str =
-            if String.IsNullOrEmpty(str) then
-                Error "Email: Must not be null or empty"
-            elif System.Text.RegularExpressions.Regex.IsMatch(str, ".+@.+") then
-                Ok(UnverifiedEmail str)
-            else
-                Error "Invalid Email Address"
+    let create str =
+        if String.IsNullOrEmpty(str) then
+            Error "Email: Must not be null or empty"
+        elif System.Text.RegularExpressions.Regex.IsMatch(str, ".+@.+") then
+            Ok(UnverifiedEmail str)
+        else
+            Error "Invalid Email Address"
 
-    module VerifiedEmail =
-        let value (VerifiedEmail str) = str
+module VerifiedEmail =
+    let value (VerifiedEmail str) = str
 
-    module ZipCode =
-        let value (ZipCode str) = str
+module ZipCode =
+    let value (ZipCode str) = str
 
-        let create str =
-            if String.IsNullOrEmpty(str) then
-                Error "Zip Code Must Not Be Empty"
-            elif System.Text.RegularExpressions.Regex.IsMatch(str, "\d{5}") then
-                Ok(ZipCode str)
-            else
-                Error "Invalid Zip Code"
+    let create str =
+        if String.IsNullOrEmpty(str) then
+            Error "Zip Code Must Not Be Empty"
+        elif System.Text.RegularExpressions.Regex.IsMatch(str, "\d{5}") then
+            Ok(ZipCode str)
+        else
+            Error "Invalid Zip Code"
 
-    module Password =
-        let value (Password str) = str
+module Password =
+    let value (Password str) = str
 
-        let create str =
-            if String.IsNullOrEmpty(str) then
-                Error "Email: Must not be null or empty"
-            else
-                Ok(Password str)
+    let create str =
+        if String.IsNullOrEmpty(str) then
+            Error "Email: Must not be null or empty"
+        else
+            Ok(Password str)
 
-    (*
+(*
         Compound Types
     *)
-    type AddressUSA =
-        { AddressLine1: string
-          AddressLine2: string
-          City: string
-          State: string
-          ZipCode: ZipCode }
+type AddressUSA =
+    { AddressLine1: string
+      AddressLine2: string
+      City: string
+      State: string
+      ZipCode: ZipCode }
 
-    type Address = AddressUSA
+type Address = AddressUSA
 
-    type Email =
-        | VerifiedEmail
-        | UnverifiedEmail
+type Email =
+    | VerifiedEmail
+    | UnverifiedEmail
 
-    type PersonalName = { FirstName: string; LastName: string }
+type PersonalName = { FirstName: string; LastName: string }
 
 
-    (*
+(*
         User Types
     *)
-    type User =
-        { Id: UserId
-          Name: PersonalName
-          Email: Email
-          Password: Password }
+type User =
+    { Id: UserId
+      Name: PersonalName
+      Email: Email
+      Password: Password }
 
-    (*
+(*
         Ring Types
     *)
-    type RingName = RingName of string
-    type RingSchedule = Undefined
+type RingName = RingName of string
+type RingSchedule = Undefined
 
-    type UnvalidatedRing =
-        { Name: RingName
-          Address: Address
-          Schedule: RingSchedule }
+type UnvalidatedRing =
+    { Name: RingName
+      Address: Address
+      Schedule: RingSchedule }
 
-    type ValidatedRing =
-        { Id: RingId
-          Name: RingName
-          Address: Address
-          Schedule: RingSchedule }
+type ValidatedRing =
+    { Id: RingId
+      Name: RingName
+      Address: Address
+      Schedule: RingSchedule }
 
-    type ArchivedRing =
-        { Id: RingId
-          Name: RingName
-          Address: Address
-          Schedule: RingSchedule }
+type ArchivedRing =
+    { Id: RingId
+      Name: RingName
+      Address: Address
+      Schedule: RingSchedule }
 
-    type Ring =
-        | Unvalidated of UnvalidatedRing
-        | Valid of ValidatedRing
-        | Archived of ArchivedRing
+type Ring =
+    | Unvalidated of UnvalidatedRing
+    | Valid of ValidatedRing
+    | Archived of ArchivedRing
 
-    type VendorName = VendorName of string
-    type VendorLogo = Undefined
-    type VendorRing = VendorRing of RingId
+type VendorName = VendorName of string
+type VendorLogo = Undefined
+type VendorRing = VendorRing of RingId
 
-    type Vendor =
-        { Id: VendorId
-          Name: VendorName
-          Email: Email
-          Logo: VendorLogo
-          User: UserId
-          VendorRings: VendorRing list }
+type Vendor =
+    { Id: VendorId
+      Name: VendorName
+      Email: Email
+      Logo: VendorLogo
+      User: UserId
+      VendorRings: VendorRing list }
 
-    (*
+(*
         Customer Types
     *)
-    type CustomerName = CustomerName of string
-    type CustomerRing = CustomerRing of RingId
+type CustomerName = CustomerName of string
+type CustomerRing = CustomerRing of RingId
 
+type Customer =
+    { Id: CustomerId
+      user: UserId
+      Name: CustomerName
+      Rings: RingId list }
 
-    type Customer =
-        { Id: CustomerId
-          user: UserId
-          Name: CustomerName
-          Rings: RingId list }
-
-    (*
+(*
         Admin Types
     *)
-    type AdminName = AdminName of string
+type AdminName = AdminName of string
 
-    type Admin = { Id: AdminId; UserId: UserId }
+type Admin = { Id: AdminId; UserId: UserId }
 
-    (*
+(*
         Post Types
     *)
-    type PostAuthor =
-        | Vendor of VendorId
-        | Admin of AdminId
-        | Customer of CustomerId
+type PostAuthor =
+    | Vendor of VendorId
+    | Admin of AdminId
+    | Customer of CustomerId
 
-    type PostText = PostText of string
-    type PostParent = PostParent of PostId option
+type PostText = PostText of string
+type PostParent = PostParent of PostId option
 
-    type RootPost =
-        { Id: PostId
-          Author: PostAuthor
-          Text: PostText }
+type RootPost =
+    { Id: PostId
+      Author: PostAuthor
+      Text: PostText }
 
-    type ReplyPost =
-        { Id: PostId
-          Author: PostAuthor
-          Text: PostText
-          Parent: PostParent }
+type ReplyPost =
+    { Id: PostId
+      Author: PostAuthor
+      Text: PostText
+      Parent: PostParent }
 
-    type ReplyPostWithMention =
-        { Id: PostId
-          Author: PostAuthor
-          Text: PostText
-          Parent: PostParent
-          Mention: PostAuthor }
+type ReplyPostWithMention =
+    { Id: PostId
+      Author: PostAuthor
+      Text: PostText
+      Parent: PostParent
+      Mention: PostAuthor }
 
-    type Post =
-        | Root of RootPost
-        | Reply of ReplyPost
-        | Mention of ReplyPostWithMention
+type Post =
+    | Root of RootPost
+    | Reply of ReplyPost
+    | Mention of ReplyPostWithMention
 
-    (*
+(*
         Implementation
     *)
 
-    type ValidateEmail = UnvalidatedEmail -> Result<UnverifiedEmail, EmailValidationError>
+type ValidateEmail = UnvalidatedEmail -> Result<UnverifiedEmail, EmailValidationError>
 
-    and EmailValidationError =
-        | EmptyEmail
-        | InvalidEmail
+and EmailValidationError =
+    | EmptyEmail
+    | InvalidEmail
 
-    type VerifyEmail = UnverifiedEmail -> VerifiedEmail
+type VerifyEmail = UnverifiedEmail -> VerifiedEmail
 
-    (*
+(*
         Command
     *)
-    type CreateRing = UnvalidatedRing
+type CreateRing =
+    { UnvalidatedRing: UnvalidatedRing
+      ActorId: ActorId }
 
-    type UpdateRing =
-        { Ring: ValidatedRing
-          Name: RingName option
-          Address: Address option
-          Schedule: RingSchedule }
+type UpdateRing =
+    { Ring: ValidatedRing
+      Name: RingName option
+      Address: Address option
+      Schedule: RingSchedule option
+      ActorId: ActorId }
 
-    type RemoveRing = { RingId: RingId; ActorId: ActorId }
+type RemoveRing = { RingId: RingId; ActorId: ActorId }
 
-    type Command<'data> =
-        { Data: 'data
-          TimeStamp: DateTime
-          UserId: UserId
-          ActorId: ActorId }
+type Command<'data> =
+    { Data: 'data
+      TimeStamp: DateTime
+      UserId: UserId
+      ActorId: ActorId }
 
-    type CreateRingCommand = Command<CreateRing>
-    type UpdateRingCommand = Command<UpdateRing>
-    type RemoveRingCommand = Command<RemoveRing>
+type CreateRingCommand = Command<CreateRing>
+type UpdateRingCommand = Command<UpdateRing>
+type RemoveRingCommand = Command<RemoveRing>
 
-    (*
+(*
         Events
     *)
-    type RingCreatedEvent =
-        { AdminId: AdminId
-          Ring: ValidatedRing }
+type RingCreatedEvent =
+    { AdminId: AdminId
+      Ring: ValidatedRing }
 
-    type RingUpdatedEvent = { AdminId: AdminId; Ring: UpdateRing }
+type RingUpdatedEvent = { AdminId: AdminId; Ring: UpdateRing }
 
-    type RingRemovedEvent = { AdminId: AdminId; RingId: RingId }
+type RingRemovedEvent = { AdminId: AdminId; RingId: RingId }
 
-    (*
+(*
         Workflow Steps
-    *)
-    // ValidateRing
-    type RingExists = Undefined
-    type RingNameTaken = Undefined
-    type HasRingAdmin = Undefined
-    type HasValidRingSchedule = Undefined
+*)
+// ValidateRing
 
-    type ValidateRingCreate =
-        RingExists // dependency
-            -> HasRingAdmin // dependency
-            -> RingNameTaken // dependency
-            -> HasValidRingSchedule // dependency
-            -> Ring
-            -> CreateRing // input
-            -> Result<ValidatedRing, ValidateRingError>
+type CreateRingId = unit -> ID<RingId>
+type HasRingAdmin = ActorId -> Async<bool>
+type RingExists = RingId -> Async<bool>
+type RingNameTaken = RingName -> Async<RingName option>
+type HasValidRingSchedule = RingSchedule -> RingSchedule option
 
-    and ValidateRingError =
-        | AlreadyExists
-        | UserNotAdmin
-        | NameTaken
-        | InvalidSchedule
+type ValidateRingCreate =
+    HasRingAdmin // dependency
+        -> RingNameTaken // dependency
+        -> HasValidRingSchedule // dependency
+        -> CreateRingId
+        -> CreateRing // input
+        -> Async<Result<ValidatedRing, ValidateRingError>>
 
+and ValidateRingError =
+    | AlreadyExists
+    | UserNotAdmin
+    | NameTaken
+    | InvalidSchedule
 
+type ValidateRingUpdate =
+    HasRingAdmin  // dependency
+        -> RingExists // dependency
+        -> RingNameTaken // dependency
+        -> HasValidRingSchedule // dependency
+        -> UpdateRing // input
+        -> Async<Result<ValidatedRing, ValidateRingUpdateError>>
 
+and ValidateRingUpdateError =
+    | UserNotAdmin
+    | NameTaken
+    | InvalidSchedule
 
-    type ValidateRingUpdate =
-        RingExists // dependency
-            -> HasRingAdmin // dependency
-            -> RingNameTaken // dependency
-            -> HasValidRingSchedule // dependency
-            -> UpdateRing // input
-            -> Result<ValidatedRing, ValidateRingUpdateError>
+type RingIsRemoved = Undefined
 
-    and ValidateRingUpdateError =
-        | DoesNotExist
-        | UserNotAdmin
-        | NameTaken
-        | InvalidSchedule
+type ValidateRingRemove =
+    RingExists // dependency
+        -> RingIsRemoved // dependency
+        -> HasRingAdmin // dependency
+        -> RingNameTaken // dependency
+        -> HasValidRingSchedule // dependency
+        -> RemoveRing // input
+        -> Result<ValidatedRing, ValidateRingUpdateError>
 
+and ValidateRingRemoveError =
+    | DoesNotExist
+    | AlreadyRemoved
+    | UserNotAdmin
+    | NameTaken
+    | InvalidSchedule
 
-
-    type RingIsRemoved = Undefined
-
-    type ValidateRingRemove =
-        RingExists // dependency
-            -> RingIsRemoved
-            -> HasRingAdmin // dependency
-            -> RingNameTaken // dependency
-            -> HasValidRingSchedule // dependency
-            -> RemoveRing // input
-            -> Result<ValidatedRing, ValidateRingUpdateError>
-
-    and ValidateRingRemoveError =
-        | DoesNotExist
-        | AlreadyRemoved
-        | UserNotAdmin
-        | NameTaken
-        | InvalidSchedule
-
-    // CreateRingId
-    type CreateRingId = unit -> ID<RingId>
-
-    (*
+(*
         Workflow Impl
-    *)
-    type AddRingWorkflow = CreateRingCommand -> Result<RingCreatedEvent, AddRingWorkflowError>
-    and AddRingWorkflowError = Validation of ValidateRingError
+*)
+type AddRingWorkflow = CreateRingCommand -> Result<RingCreatedEvent, AddRingWorkflowError>
+and AddRingWorkflowError = Validation of ValidateRingError
 
-    type UpdateRingWorkflow = UpdateRingCommand -> Result<RingUpdatedEvent, UpdateRingWorkflowError>
-    and UpdateRingWorkflowError = Validation of ValidateRingUpdateError
+type UpdateRingWorkflow = UpdateRingCommand -> Result<RingUpdatedEvent, UpdateRingWorkflowError>
+and UpdateRingWorkflowError = Validation of ValidateRingUpdateError
 
-    type RemoveRingWorkflow = RemoveRingCommand -> Result<RingRemovedEvent, RemoveRingWorkflowError>
-    and RemoveRingWorkflowError = Validation of ValidateRingRemoveError
+type RemoveRingWorkflow = RemoveRingCommand -> Result<RingRemovedEvent, RemoveRingWorkflowError>
+and RemoveRingWorkflowError = Validation of ValidateRingRemoveError
+
+let validateRingCreate: ValidateRingCreate =
+    fun hasRingAdmin ringNameTaken hasValidRingSchedule createRingId input ->
+        asyncResult {
+            let name = input.UnvalidatedRing.Name
+
+            do!
+                input.ActorId
+                |> hasRingAdmin
+                |> AsyncResult.requireTrue ValidateRingError.UserNotAdmin
+
+            do!
+                name
+                |> ringNameTaken
+                |> AsyncResult.requireNone ValidateRingError.NameTaken
+
+            let! schedule =
+                input.UnvalidatedRing.Schedule
+                |> hasValidRingSchedule
+                |> Result.requireSome ValidateRingError.InvalidSchedule
+
+            let id = createRingId ()
+
+            let validatedRing: ValidatedRing =
+                { Id = RingId id
+                  Name = name
+                  Address = input.UnvalidatedRing.Address
+                  Schedule = schedule }
+
+            return validatedRing
+        }
+
+let validateRingUpdate: ValidateRingUpdate = fun hasRingAdmin ringExists ringNameTaken hasValidRingSchedule input ->
+    asyncResult {
+        let ring = input.Ring
+
+        do!
+            input.ActorId 
+            |> hasRingAdmin
+            |> AsyncResult.requireTrue ValidateRingUpdateError.UserNotAdmin
+
+        
+        let! name =
+            input.Name
+                |> Option.defaultValue ring.Name
+                |> ringNameTaken
+                |> AsyncResult.requireSome ValidateRingUpdateError.NameTaken
+
+        let! schedule =
+            input.Schedule
+                |> Option.defaultValue ring.Schedule
+                |> hasValidRingSchedule
+                |> Result.requireSome ValidateRingUpdateError.InvalidSchedule
+
+        let rv = { ring with Name = name; Schedule = schedule }
+        return rv
+    }

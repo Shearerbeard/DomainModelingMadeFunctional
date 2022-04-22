@@ -1,0 +1,23 @@
+STORAGE: NONE
+RESTRICTION: == net6.0
+NUGET
+  remote: https://api.nuget.org/v3/index.json
+    FSharp.Core (6.0.3)
+    FsToolkit (5.2.143)
+      FSharp.Core (>= 4.7.2)
+      System.Configuration.ConfigurationManager (>= 4.7)
+    FsToolkit.ErrorHandling (2.13)
+      FSharp.Core (>= 4.7.2)
+    Microsoft.Win32.SystemEvents (6.0.1)
+    System.Configuration.ConfigurationManager (6.0)
+      System.Security.Cryptography.ProtectedData (>= 6.0)
+      System.Security.Permissions (>= 6.0)
+    System.Drawing.Common (6.0)
+      Microsoft.Win32.SystemEvents (>= 6.0)
+    System.Security.AccessControl (6.0)
+    System.Security.Cryptography.ProtectedData (6.0)
+    System.Security.Permissions (6.0)
+      System.Security.AccessControl (>= 6.0)
+      System.Windows.Extensions (>= 6.0)
+    System.Windows.Extensions (6.0)
+      System.Drawing.Common (>= 6.0)
