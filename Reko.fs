@@ -251,10 +251,22 @@ type RingRemovedEvent = { AdminId: AdminId; RingId: RingId }
 *)
 // ValidateRing
 
+type RingNameTakenError =
+    | RingNameTakenError
+    | ApiError
+
+type HasRingAdminError =
+    | HasRingAdminError
+    | ApiError
+
+type HasRingExistsError =
+    | HasringExistsError
+    | ApiError
+
 type CreateRingId = unit -> ID<RingId>
-type HasRingAdmin = ActorId -> Async<bool>
+type HasRingAdmin = ActorId -> Async<Result<bool, exn>>
 type RingExists = RingId -> Async<bool>
-type RingNameTaken = RingName -> Async<RingName option>
+type RingNameTaken = RingName -> Async<Result<bool, exn>>
 type HasValidRingSchedule = RingSchedule -> RingSchedule option
 
 type ValidateRingCreate =
@@ -268,11 +280,11 @@ type ValidateRingCreate =
 and ValidateRingError =
     | AlreadyExists
     | UserNotAdmin
-    | NameTaken
+    | NameTaken of RingNameTakenError
     | InvalidSchedule
 
 type ValidateRingUpdate =
-    HasRingAdmin  // dependency
+    HasRingAdmin // dependency
         -> RingExists // dependency
         -> RingNameTaken // dependency
         -> HasValidRingSchedule // dependency
@@ -281,7 +293,7 @@ type ValidateRingUpdate =
 
 and ValidateRingUpdateError =
     | UserNotAdmin
-    | NameTaken
+    | NameTaken of RingNameTakenError
     | InvalidSchedule
 
 type RingIsRemoved = Undefined
@@ -317,17 +329,29 @@ and RemoveRingWorkflowError = Validation of ValidateRingRemoveError
 let validateRingCreate: ValidateRingCreate =
     fun hasRingAdmin ringNameTaken hasValidRingSchedule createRingId input ->
         asyncResult {
-            let name = input.UnvalidatedRing.Name
+            let inputName = input.UnvalidatedRing.Name
 
             do!
                 input.ActorId
                 |> hasRingAdmin
-                |> AsyncResult.requireTrue ValidateRingError.UserNotAdmin
+                |> AsyncResult.foldResult
+                    (fun x ->
+                        if x then
+                            Ok(())
+                        else
+                            Error(ValidateRingError.UserNotAdmin))
+                    (fun _ -> Error(ValidateRingError.UserNotAdmin))
 
-            do!
-                name
+            let! name =
+                inputName
                 |> ringNameTaken
-                |> AsyncResult.requireNone ValidateRingError.NameTaken
+                |> AsyncResult.foldResult
+                    (fun x ->
+                        if x then
+                            Ok(inputName)
+                        else
+                            Error(ValidateRingError.NameTaken RingNameTakenError.RingNameTakenError))
+                    (fun e -> Error(ValidateRingError.NameTaken RingNameTakenError.ApiError))
 
             let! schedule =
                 input.UnvalidatedRing.Schedule
@@ -345,28 +369,45 @@ let validateRingCreate: ValidateRingCreate =
             return validatedRing
         }
 
-let validateRingUpdate: ValidateRingUpdate = fun hasRingAdmin ringExists ringNameTaken hasValidRingSchedule input ->
-    asyncResult {
-        let ring = input.Ring
+let validateRingUpdate: ValidateRingUpdate =
+    fun hasRingAdmin ringExists ringNameTaken hasValidRingSchedule input ->
+        asyncResult {
+            let ring = input.Ring
 
-        do!
-            input.ActorId 
-            |> hasRingAdmin
-            |> AsyncResult.requireTrue ValidateRingUpdateError.UserNotAdmin
+            do!
+                input.ActorId
+                |> hasRingAdmin
+                |> AsyncResult.foldResult
+                    (fun x ->
+                        if x then
+                            Ok(())
+                        else
+                            Error(ValidateRingUpdateError.UserNotAdmin))
+                    (fun _ -> Error(ValidateRingUpdateError.UserNotAdmin))
 
-        
-        let! name =
-            input.Name
+
+            let! name =
+                input.Name
                 |> Option.defaultValue ring.Name
                 |> ringNameTaken
-                |> AsyncResult.requireSome ValidateRingUpdateError.NameTaken
+                |> AsyncResult.foldResult
+                    (fun x ->
+                        if x then
+                            Ok(Option.defaultValue ring.Name input.Name)
+                        else
+                            Error(ValidateRingUpdateError.NameTaken RingNameTakenError.RingNameTakenError))
+                    (fun _ -> Error(ValidateRingUpdateError.NameTaken RingNameTakenError.ApiError))
 
-        let! schedule =
-            input.Schedule
+            let! schedule =
+                input.Schedule
                 |> Option.defaultValue ring.Schedule
                 |> hasValidRingSchedule
                 |> Result.requireSome ValidateRingUpdateError.InvalidSchedule
 
-        let rv = { ring with Name = name; Schedule = schedule }
-        return rv
-    }
+            let rv =
+                { ring with
+                    Name = name
+                    Schedule = schedule }
+
+            return rv
+        }
