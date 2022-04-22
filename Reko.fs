@@ -198,6 +198,22 @@ type Post =
     | Mention of ReplyPostWithMention
 
 (*
+    Util
+*)
+let predicatePassthrough f x err =
+    if f x then Ok(x) else Error(err)
+
+let toResultPassthrough f x err =
+    match f x with
+        | Ok(y) -> Ok(x)
+        | Error(_) -> Error(err)
+
+let toSomePassthrough f x err =
+    match f x with
+        | Some(y) -> Ok(y)
+        | None -> Error(err)
+
+(*
         Implementation
     *)
 
@@ -292,6 +308,7 @@ type ValidateRingUpdate =
         -> Async<Result<ValidatedRing, ValidateRingUpdateError>>
 
 and ValidateRingUpdateError =
+    | AlreadyExists
     | UserNotAdmin
     | NameTaken of RingNameTakenError
     | InvalidSchedule
@@ -331,6 +348,7 @@ let validateRingCreate: ValidateRingCreate =
         asyncResult {
             let inputName = input.UnvalidatedRing.Name
 
+            // TODO - consolidate actorId check
             do!
                 input.ActorId
                 |> hasRingAdmin
@@ -342,6 +360,7 @@ let validateRingCreate: ValidateRingCreate =
                             Error(ValidateRingError.UserNotAdmin))
                     (fun _ -> Error(ValidateRingError.UserNotAdmin))
 
+            // TODO - wrapper function to lift value out of predicate check
             let! name =
                 inputName
                 |> ringNameTaken
@@ -353,6 +372,7 @@ let validateRingCreate: ValidateRingCreate =
                             Error(ValidateRingError.NameTaken RingNameTakenError.RingNameTakenError))
                     (fun e -> Error(ValidateRingError.NameTaken RingNameTakenError.ApiError))
 
+            // TODO - wrapper function to lift value out of predicate check
             let! schedule =
                 input.UnvalidatedRing.Schedule
                 |> hasValidRingSchedule
@@ -374,6 +394,7 @@ let validateRingUpdate: ValidateRingUpdate =
         asyncResult {
             let ring = input.Ring
 
+            // TODO - consolidate actorId check
             do!
                 input.ActorId
                 |> hasRingAdmin
@@ -385,7 +406,13 @@ let validateRingUpdate: ValidateRingUpdate =
                             Error(ValidateRingUpdateError.UserNotAdmin))
                     (fun _ -> Error(ValidateRingUpdateError.UserNotAdmin))
 
+            do!
+                input.Ring.Id
+                |> ringExists
+                |> AsyncResult.requireTrue ValidateRingUpdateError.AlreadyExists
 
+
+            // TODO - wrapper function to lift value out of predicate check
             let! name =
                 input.Name
                 |> Option.defaultValue ring.Name
@@ -398,6 +425,7 @@ let validateRingUpdate: ValidateRingUpdate =
                             Error(ValidateRingUpdateError.NameTaken RingNameTakenError.RingNameTakenError))
                     (fun _ -> Error(ValidateRingUpdateError.NameTaken RingNameTakenError.ApiError))
 
+            // TODO - wrapper function to lift value out of predicate check
             let! schedule =
                 input.Schedule
                 |> Option.defaultValue ring.Schedule
