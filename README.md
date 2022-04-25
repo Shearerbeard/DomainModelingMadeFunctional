@@ -15,3 +15,11 @@ Working through the Book "Domain Modeling Made Functional" while doing some samp
 4. Initialize Paket config `dotnet paket init`
 5. Add your dep with `dotnet paket add <NugetPackageName> --project <YOUR PROJECT>`
 6. Install paket deps in your project with `dotnet paket install`
+
+
+### Run Repl With Init Scripts`
+1. `paket install` to add any deps
+2. Add a new  .fsx script to use as initial input for imports as well as any initialization code
+3. Add `#load @".paket/load/net6.0/<LIB>.fsx"` and `open <LIB>` as needed for all deps from paket
+4. Add any other initialization code needed to be in scope for when fsi initializes
+5. Run `dotnet fsi --use:<INPUT_FILE>.fsx` to run the script before initializing F# interactive

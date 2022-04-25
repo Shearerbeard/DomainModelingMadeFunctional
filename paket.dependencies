@@ -1,7 +1,9 @@
+generate_load_scripts: true
 source https://api.nuget.org/v3/index.json
 
 nuget FsToolkit
 nuget FsToolkit.ErrorHandling
+nuget FunStripe
 
 framework: net6.0
 storage: none
