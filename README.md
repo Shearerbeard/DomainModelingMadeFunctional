@@ -18,8 +18,8 @@ Working through the Book "Domain Modeling Made Functional" while doing some samp
 
 
 ### Run Repl With Init Scripts`
-1. `paket install` to add any deps
+1. Run `dotnet paket install` and  `dotnet paket generate-load-scripts` to install then generate *.fsx load scripts for all deps in your paket.dependenies
 2. Add a new  .fsx script to use as initial input for imports as well as any initialization code
-3. Add `#load @".paket/load/net6.0/<LIB>.fsx"` and `open <LIB>` as needed for all deps from paket
-4. Add any other initialization code needed to be in scope for when fsi initializes
-5. Run `dotnet fsi --use:<INPUT_FILE>.fsx` to run the script before initializing F# interactive
+3. Add `#load @".paket/load/net6.0/<LIB>.fsx"` and `open <LIB>` as needed for all deps from paket into your new init script *.fsx
+4. Add any other initialization code needed to be in scope for when fsi you boot the repl
+5. Run `dotnet fsi --use:<SCRIPT_FILE>.fsx` to run the script before initializing F# interactive

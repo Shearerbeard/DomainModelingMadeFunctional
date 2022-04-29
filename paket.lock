@@ -3,6 +3,7 @@ STORAGE: NONE
 RESTRICTION: == net6.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
+    dotenv.net (3.1.1)
     FSharp.Core (6.0.3)
     FSharp.Data (4.2.8)
       FSharp.Core (>= 4.7.2)
