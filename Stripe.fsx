@@ -8,7 +8,7 @@ open dotenv.net
 DotEnv.Load()
 let envars = DotEnv.Read()
 
-let createCustomerAddress line1 line2  city state zip =
+let createCustomerAddress line1 line2 city state zip =
     async {
         return
             Customers.Create'AddressOptionalFieldsAddress.New(
@@ -19,25 +19,23 @@ let createCustomerAddress line1 line2  city state zip =
                 postalCode = zip
             )
     }
-    
 
-let createCustomer settings address = 
+
+let createCustomer settings address =
     asyncResult {
         return!
-            Customers.CreateOptions.New(
-                name = "Name",
-                address = Choice1Of2 address
-            )
+            Customers.CreateOptions.New(name = "Name", address = Choice1Of2 address)
             |> Customers.Create settings
     }
 
 
-let mkCard () = PaymentMethods.Create'CardCardDetailsParams.New(
-    cvc = "333",
-    expMonth = 10,
-    expYear = 2022,
-    number = "4242424242424242"
-)
+let createCard () =
+    PaymentMethods.Create'CardCardDetailsParams.New(
+        cvc = "333",
+        expMonth = 10,
+        expYear = 2022,
+        number = "4242424242424242"
+    )
 
 let createPaymentMethod settings card =
     asyncResult {
@@ -53,10 +51,6 @@ let createPaymentMethod settings card =
 let attachCustomer settings customerId paymentMethodId =
     asyncResult {
         return!
-            PaymentMethodsAttach.AttachOptions.New(
-                customer = customerId,
-                paymentMethod = paymentMethodId
-            )
+            PaymentMethodsAttach.AttachOptions.New(customer = customerId, paymentMethod = paymentMethodId)
             |> PaymentMethodsAttach.Attach settings
     }
-
