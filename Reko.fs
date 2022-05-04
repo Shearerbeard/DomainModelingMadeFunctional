@@ -1,9 +1,35 @@
+module Payment =
+    open FunStripe.StripeRequest
+
+    let createSubscription settings =
+        Subscriptions.CreateOptions.New(
+            customer = "asdf",
+            items = [Subscriptions.Create'Items.New(
+                price = "asdf",
+                quantity = 1
+            )]
+        )
+        |> Subscriptions.Create settings
+
+    let createSession settings  =
+        let item = CheckoutSessions.Create'LineItems.New(
+                price = "asdf",
+                quantity = 1
+        )
+        CheckoutSessions.CreateOptions.New(
+            mode = CheckoutSessions.Create'Mode.Subscription,
+            customerEmail = "asdf",
+            lineItems = [item],
+            cancelUrl = "asdf",
+            successUrl = "asdf"
+        )
+        |> CheckoutSessions.Create settings
+
+
 module Reko =
 
     open System
     open FsToolkit.ErrorHandling
-
-    // open FsToolkit.ErrorHandling
 
     (*
             TODO:

@@ -9,7 +9,7 @@ Working through the Book "Domain Modeling Made Functional" while doing some samp
 
 
 ### Notes on Paket
-1. Create dotnet solution `dotnet sln new`
+1. Create dotnet solution `dotnet new sln`
 2. Add fsharp project to solution `dotnet sln add --project <YOUR PROJECT>.fsproj
 3. Add paket tool `dotnet tool install paket`
 4. Initialize Paket config `dotnet paket init`

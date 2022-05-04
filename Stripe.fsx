@@ -8,6 +8,9 @@ open dotenv.net
 DotEnv.Load()
 let envars = DotEnv.Read()
 
+(*
+    Customers
+*)
 let createCustomerAddress line1 line2  city state zip =
     async {
         return
@@ -31,7 +34,9 @@ let createCustomer settings address =
             |> Customers.Create settings
     }
 
-
+(*
+    Payment Methods
+*)
 let mkCard () = PaymentMethods.Create'CardCardDetailsParams.New(
     cvc = "333",
     expMonth = 10,
@@ -59,4 +64,11 @@ let attachCustomer settings customerId paymentMethodId =
             )
             |> PaymentMethodsAttach.Attach settings
     }
+
+
+let createSubscription settings customerId =
+    Subscriptions.CreateOptions.New(
+        customer = customerId,
+        items = []
+    )
 
