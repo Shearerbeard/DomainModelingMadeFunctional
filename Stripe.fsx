@@ -11,7 +11,7 @@ let envars = DotEnv.Read()
 (*
     Customers
 *)
-let createCustomerAddress line1 line2  city state zip =
+let createCustomerAddress line1 line2 city state zip =
     async {
         return
             Customers.Create'AddressOptionalFieldsAddress.New(
@@ -24,7 +24,7 @@ let createCustomerAddress line1 line2  city state zip =
     }
     
 
-let createCustomer settings address = 
+let createCustomer settings address =
     asyncResult {
         return!
             Customers.CreateOptions.New(
@@ -37,12 +37,13 @@ let createCustomer settings address =
 (*
     Payment Methods
 *)
-let mkCard () = PaymentMethods.Create'CardCardDetailsParams.New(
-    cvc = "333",
-    expMonth = 10,
-    expYear = 2022,
-    number = "4242424242424242"
-)
+let createCard () =
+    PaymentMethods.Create'CardCardDetailsParams.New(
+        cvc = "333",
+        expMonth = 10,
+        expYear = 2022,
+        number = "4242424242424242"
+    )
 
 let createPaymentMethod settings card =
     asyncResult {

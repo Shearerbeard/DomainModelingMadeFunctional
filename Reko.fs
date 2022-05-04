@@ -226,18 +226,17 @@ module Reko =
     (*
         Util
     *)
-    let predicatePassthrough f x err =
-        if f x then Ok(x) else Error(err)
+    let predicatePassthrough f x err = if f x then Ok(x) else Error(err)
 
     let toResultPassthrough f x err =
         match f x with
-            | Ok(y) -> Ok(x)
-            | Error(_) -> Error(err)
+        | Ok (y) -> Ok(x)
+        | Error (_) -> Error(err)
 
     let toSomePassthrough f x err =
         match f x with
-            | Some(y) -> Ok(y)
-            | None -> Error(err)
+        | Some (y) -> Ok(y)
+        | None -> Error(err)
 
     (*
             Implementation
